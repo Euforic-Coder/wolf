@@ -19,9 +19,8 @@ void get_files(path p){
             directory_iterator it(p);
             while(it != directory_iterator{}){
                 path current_path(*it);
-                if (!is_directory(*it) && is_regular_file(*it)){
+                if (!is_directory(*it)){
                     files.push_back(current_path);
-                    DEBUG(current_path.generic_string());
                 }else{
                     get_files(current_path);
                 }
@@ -31,8 +30,9 @@ void get_files(path p){
     }catch(...){}
 }
 
+// Calculate score of match
 int calculate(const string& s, const string& other){
-    int score;
+    int score = 0;
     vector<string> buffer = funnel(s);
     for(int i = 0; i < buffer.size(); ++i){
         string part = buffer[i];
@@ -43,16 +43,16 @@ int calculate(const string& s, const string& other){
     return score;
 }
 
+// Calculate percentage of match
 void match(const path& p){
 
-    // Grab filename
     string file = p.filename().generic_string();
-    DEBUG(file);
     float full = calculate(search, search);
-    float perc = calculate(p.generic_string(), search);
+    float perc = calculate(search, file);
     float calc = (perc / full) * 100;
-    string temp = colored(search, Red, Bold) + " Full = " + to_string(full) + " Perc = " + to_string(perc) + " Calc = " + to_string(calc);
-    DEBUG(temp);
+    if(calc > 75){
+        cout << p.generic_string() << endl;
+    }
 
 }
 
@@ -74,12 +74,11 @@ int main(int argc, char *argv[]){
         location = "./";
     }
 
-    DEBUG(search);
-    DEBUG(location);
-
+    // Collect files
     get_files(location);
+
+    // Iterate through files
     for(path file : files){
-        DEBUG(file.generic_string());
         match(file.generic_string());
     }
     return 0;
